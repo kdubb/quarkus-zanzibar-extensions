@@ -1,8 +1,10 @@
 package io.quarkiverse.zanzibar.jaxrs;
 
+import static javax.ws.rs.Priorities.AUTHORIZATION;
 import static javax.ws.rs.core.Response.Status.FORBIDDEN;
 import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 
+import javax.annotation.Priority;
 import javax.enterprise.context.ApplicationScoped;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.ext.Provider;
@@ -13,6 +15,7 @@ import org.jboss.resteasy.reactive.server.spi.ResteasyReactiveContainerRequestFi
 
 @ApplicationScoped
 @Provider
+@Priority(AUTHORIZATION)
 public class ZanzibarReactiveAuthorizationFilter extends ZanzibarAuthorizationFilter
         implements ResteasyReactiveContainerRequestFilter {
 

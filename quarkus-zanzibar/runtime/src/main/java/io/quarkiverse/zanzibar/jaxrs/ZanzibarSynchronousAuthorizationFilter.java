@@ -1,10 +1,12 @@
 package io.quarkiverse.zanzibar.jaxrs;
 
+import static javax.ws.rs.Priorities.AUTHORIZATION;
 import static javax.ws.rs.core.Response.Status.FORBIDDEN;
 import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 
 import java.time.Duration;
 
+import javax.annotation.Priority;
 import javax.enterprise.context.ApplicationScoped;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerRequestFilter;
@@ -15,6 +17,7 @@ import org.jboss.logging.Logger;
 
 @ApplicationScoped
 @Provider
+@Priority(AUTHORIZATION)
 public class ZanzibarSynchronousAuthorizationFilter extends ZanzibarAuthorizationFilter implements ContainerRequestFilter {
 
     private static final Logger log = Logger.getLogger(ZanzibarSynchronousAuthorizationFilter.class);
