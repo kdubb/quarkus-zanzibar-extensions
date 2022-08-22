@@ -23,7 +23,7 @@ public class StoresClient {
 
     public Uni<PaginatedList<Store>> list(@Nullable Integer pageSize, @Nullable String continuationToken) {
         return api.listStores(pageSize, continuationToken)
-                .map(res -> new PaginatedList<>(res.stores(), res.continuationToken()));
+                .map(res -> new PaginatedList<>(res.getStores(), res.getContinuationToken()));
     }
 
     public Uni<List<Store>> listAll() {

@@ -28,17 +28,17 @@ public class AuthorizationModelClient {
 
     public Uni<AuthorizationModel> get() {
         return api.readAuthorizationModel(storeId, authorizationModelId)
-                .map(ReadAuthorizationModelResponse::authorizationModel);
+                .map(ReadAuthorizationModelResponse::getAuthorizationModel);
     }
 
     public Uni<Boolean> check(TupleKey tupleKey, @Nullable ContextualTupleKeys contextualTupleKeys) {
         return api.check(storeId, new CheckBody(tupleKey, contextualTupleKeys, authorizationModelId, null))
-                .map(CheckResponse::allowed);
+                .map(CheckResponse::getAllowed);
     }
 
     public Uni<UsersetTree> expand(TupleKey tupleKey) {
         return api.expand(storeId, new ExpandBody(tupleKey, authorizationModelId))
-                .map(ExpandResponse::tree);
+                .map(ExpandResponse::getTree);
     }
 
     public Uni<List<String>> listObjects(String type, String relation, String user, List<TupleKey> contextualTupleKeys) {
@@ -46,12 +46,12 @@ public class AuthorizationModelClient {
                 .listObjects(storeId,
                         new ListObjectsBody(authorizationModelId, type, relation, user,
                                 new ContextualTupleKeys(contextualTupleKeys)))
-                .map(ListObjectsResponse::objectIds);
+                .map(ListObjectsResponse::getObjectIds);
     }
 
     public Uni<PaginatedList<Tuple>> queryTuples(TupleKey tupleKey, @Nullable Integer pageSize, @Nullable String pagingToken) {
         return api.read(storeId, new ReadBody(tupleKey, authorizationModelId, pageSize, pagingToken))
-                .map(res -> new PaginatedList<>(res.tuples(), res.continuationToken()));
+                .map(res -> new PaginatedList<>(res.getTuples(), res.getContinuationToken()));
     }
 
     public Uni<List<Tuple>> queryAllTuples(TupleKey tupleKey) {

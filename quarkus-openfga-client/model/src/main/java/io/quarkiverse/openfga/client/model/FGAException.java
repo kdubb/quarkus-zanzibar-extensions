@@ -155,7 +155,7 @@ public class FGAException extends Exception {
         this.code = code;
     }
 
-    public Code code() {
+    public Code getcode() {
         return code;
     }
 

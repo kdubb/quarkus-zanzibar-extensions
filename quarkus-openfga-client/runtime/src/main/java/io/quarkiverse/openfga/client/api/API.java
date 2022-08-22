@@ -2,6 +2,8 @@ package io.quarkiverse.openfga.client.api;
 
 import static io.quarkiverse.openfga.client.api.Queries.query;
 import static io.quarkiverse.openfga.client.api.Vars.vars;
+import static io.smallrye.mutiny.unchecked.Unchecked.function;
+import static io.smallrye.mutiny.unchecked.Unchecked.supplier;
 import static io.vertx.core.http.HttpMethod.*;
 import static io.vertx.mutiny.core.http.HttpHeaders.ACCEPT;
 import static io.vertx.mutiny.core.http.HttpHeaders.CONTENT_TYPE;
@@ -17,6 +19,8 @@ import javax.inject.Inject;
 
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import io.quarkiverse.openfga.client.model.TypeDefinitions;
 import io.quarkiverse.openfga.client.model.dto.*;
 import io.smallrye.mutiny.Uni;
@@ -28,7 +32,6 @@ import io.vertx.ext.web.client.WebClientOptions;
 import io.vertx.mutiny.core.Vertx;
 import io.vertx.mutiny.core.buffer.Buffer;
 import io.vertx.mutiny.ext.web.client.HttpRequest;
-import io.vertx.mutiny.ext.web.client.HttpResponse;
 import io.vertx.mutiny.ext.web.client.WebClient;
 import io.vertx.mutiny.ext.web.client.predicate.ResponsePredicate;
 import io.vertx.mutiny.ext.web.codec.BodyCodec;
@@ -40,16 +43,19 @@ public class API {
 
     private final WebClient webClient;
     private final Optional<Credentials> credentials;
+    private final ObjectMapper objectMapper;
 
     @Inject
-    public API(Vertx vertx, @ConfigProperty(name = "quarkus.open-fga.url") URL url,
-            @ConfigProperty(name = "quarkus.open-fga.shared-key") Optional<String> sharedKey) {
+    public API(@ConfigProperty(name = "quarkus.open-fga.url") URL url,
+            @ConfigProperty(name = "quarkus.open-fga.shared-key") Optional<String> sharedKey,
+            Vertx vertx, ObjectMapper objectMapper) {
         var webClientOptions = new WebClientOptions()
                 .setSsl("https".equals(url.getProtocol()))
                 .setDefaultHost(url.getHost())
                 .setDefaultPort(url.getPort() != -1 ? url.getPort() : url.getDefaultPort());
         this.webClient = WebClient.create(vertx, webClientOptions);
         this.credentials = sharedKey.map(TokenCredentials::new);
+        this.objectMapper = objectMapper;
     }
 
     public Uni<ListStoresResponse> listStores(@Nullable Integer pageSize, @Nullable String continuationToken) {
@@ -225,29 +231,34 @@ public class API {
     }
 
     private <B, R> Uni<R> execute(HttpRequest<Buffer> request, B body, ExpectedStatus expectedStatus, Class<R> responseType) {
-        return prepare(request, expectedStatus)
-                .putHeader(ACCEPT.toString(), APPLICATION_JSON)
-                .expect(ResponsePredicate.JSON)
-                .as(BodyCodec.json(responseType))
-                .putHeader(CONTENT_TYPE.toString(), APPLICATION_JSON)
-                .sendJson(body)
-                .map(HttpResponse::body);
+        return Uni.createFrom()
+                .deferred(supplier(() -> {
+                    return prepare(request, expectedStatus)
+                            .putHeader(ACCEPT.toString(), APPLICATION_JSON)
+                            .expect(ResponsePredicate.JSON)
+                            .putHeader(CONTENT_TYPE.toString(), APPLICATION_JSON)
+                            .sendBuffer(Buffer.buffer(objectMapper.writeValueAsString(body)));
+                }))
+                .onItem().transform(function(response -> objectMapper.readValue(response.bodyAsString(), responseType)));
     }
 
     private <B> Uni<Void> execute(HttpRequest<Buffer> request, B body, ExpectedStatus expectedStatus) {
-        return prepare(request, expectedStatus)
-                .putHeader(CONTENT_TYPE.toString(), APPLICATION_JSON)
-                .sendJson(body)
-                .replaceWithVoid();
+        return Uni.createFrom()
+                .deferred(supplier(() -> {
+                    return prepare(request, expectedStatus)
+                            .putHeader(CONTENT_TYPE.toString(), APPLICATION_JSON)
+                            .sendBuffer(Buffer.buffer(objectMapper.writeValueAsString(body)))
+                            .replaceWithVoid();
+                }));
     }
 
     private <R> Uni<R> execute(HttpRequest<Buffer> request, ExpectedStatus expectedStatus, Class<R> responseType) {
         return prepare(request, expectedStatus)
                 .putHeader(ACCEPT.toString(), APPLICATION_JSON)
                 .expect(ResponsePredicate.JSON)
-                .as(BodyCodec.json(responseType))
+                .as(BodyCodec.buffer())
                 .send()
-                .map(HttpResponse::body);
+                .onItem().transform(function(response -> objectMapper.readValue(response.bodyAsString(), responseType)));
     }
 
     private Uni<Void> execute(HttpRequest<Buffer> request, ExpectedStatus expectedStatus) {

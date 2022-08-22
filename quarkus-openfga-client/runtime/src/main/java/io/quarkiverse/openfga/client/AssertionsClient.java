@@ -22,7 +22,7 @@ public class AssertionsClient {
 
     public Uni<List<Assertion>> list() {
         return api.readAssertions(storeId, authorizationModelId)
-                .map(ReadAssertionsResponse::assertions);
+                .map(ReadAssertionsResponse::getAssertions);
     }
 
     public Uni<Void> update(List<Assertion> assertions) {

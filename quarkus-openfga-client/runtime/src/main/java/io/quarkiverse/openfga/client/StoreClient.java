@@ -38,12 +38,12 @@ public class StoreClient {
     public Uni<List<TupleChange>> changes(@Nullable String type, @Nullable Integer pageSize,
             @Nullable String continuationToken) {
         return api.readChanges(storeId, type, pageSize, continuationToken)
-                .map(ReadChangesResponse::changes);
+                .map(ReadChangesResponse::getChanges);
     }
 
     public Uni<PaginatedList<Tuple>> readTuples(@Nullable Integer pageSize, @Nullable String pagingToken) {
         return api.readTuples(storeId, new ReadTuplesBody(pageSize, pagingToken))
-                .map(res -> new PaginatedList<>(res.tuples(), res.continuationToken()));
+                .map(res -> new PaginatedList<>(res.getTuples(), res.getContinuationToken()));
     }
 
     public Uni<List<Tuple>> readAllTuples() {

@@ -35,11 +35,13 @@ public class ZanzibarSynchronousAuthorizationFilter extends ZanzibarAuthorizatio
 
             context.abortWith(Response.status(FORBIDDEN).build());
 
-        } else if (checkResult instanceof Result.Check check) {
+        } else if (checkResult instanceof Result.Check) {
+
+            var check = (Result.Check) checkResult;
 
             try {
 
-                var allowed = authorizer.check(check.type(), check.object(), check.relation(), check.user())
+                var allowed = authorizer.check(check.type, check.object, check.relation, check.user)
                         .await().atMost(Duration.ofSeconds(10));
 
                 if (!allowed) {

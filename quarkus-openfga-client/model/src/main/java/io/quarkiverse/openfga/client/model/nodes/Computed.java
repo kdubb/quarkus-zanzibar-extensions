@@ -2,10 +2,38 @@ package io.quarkiverse.openfga.client.model.nodes;
 
 import java.util.Objects;
 
-public record Computed(
-        String userset) {
+import io.quarkiverse.openfga.client.model.utils.Preconditions;
 
-    public Computed {
-        Objects.requireNonNull(userset, "userset cannot be null");
+public final class Computed {
+    private final String userset;
+
+    public Computed(String userset) {
+        this.userset = Preconditions.parameterNonNull(userset, "userset");
     }
+
+    public String getUserset() {
+        return userset;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == this)
+            return true;
+        if (obj == null || obj.getClass() != this.getClass())
+            return false;
+        var that = (Computed) obj;
+        return Objects.equals(this.userset, that.userset);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(userset);
+    }
+
+    @Override
+    public String toString() {
+        return "Computed[" +
+                "userset=" + userset + ']';
+    }
+
 }

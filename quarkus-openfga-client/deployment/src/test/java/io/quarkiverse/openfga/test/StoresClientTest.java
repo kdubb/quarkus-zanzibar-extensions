@@ -6,6 +6,8 @@ import static org.exparity.hamcrest.date.OffsetDateTimeMatchers.within;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 
+import java.util.stream.Collectors;
+
 import javax.inject.Inject;
 
 import org.jboss.shrinkwrap.api.ShrinkWrap;
@@ -34,7 +36,7 @@ public class StoresClientTest {
     @BeforeEach
     public void deleteAllStores() {
         for (var store : storesClient.listAll().await().indefinitely()) {
-            storesClient.store(store.id()).delete().await().indefinitely();
+            storesClient.store(store.getId()).delete().await().indefinitely();
         }
     }
 
@@ -47,11 +49,11 @@ public class StoresClientTest {
                 .awaitItem()
                 .getItem();
 
-        assertThat(store.id(), not(emptyOrNullString()));
-        assertThat(store.name(), equalTo("testing"));
-        assertThat(store.createdAt(), within(5, SECONDS, now()));
-        assertThat(store.updatedAt(), within(5, SECONDS, now()));
-        assertThat(store.deletedAt(), is(nullValue()));
+        assertThat(store.getId(), not(emptyOrNullString()));
+        assertThat(store.getName(), equalTo("testing"));
+        assertThat(store.getCreatedAt(), within(5, SECONDS, now()));
+        assertThat(store.getUpdatedAt(), within(5, SECONDS, now()));
+        assertThat(store.getDeletedAt(), is(nullValue()));
     }
 
     @Test
@@ -65,7 +67,7 @@ public class StoresClientTest {
                 .awaitItem()
                 .getItem();
 
-        assertThat(createdStores.stream().map(Store::name).toList(),
+        assertThat(createdStores.stream().map(Store::getName).collect(Collectors.toList()),
                 containsInAnyOrder("testing1", "testing2"));
 
         var list = storesClient.list(2, null)
@@ -73,7 +75,7 @@ public class StoresClientTest {
                 .awaitItem()
                 .getItem();
 
-        assertThat(list.items(), containsInAnyOrder(createdStores.toArray()));
+        assertThat(list.getItems(), containsInAnyOrder(createdStores.toArray()));
     }
 
     @Test
@@ -87,7 +89,7 @@ public class StoresClientTest {
                 .awaitItem()
                 .getItem();
 
-        assertThat(createdStores.stream().map(Store::name).toList(),
+        assertThat(createdStores.stream().map(Store::getName).collect(Collectors.toList()),
                 containsInAnyOrder("testing1", "testing2", "testing3"));
 
         var list = storesClient.listAll(1)
@@ -113,7 +115,7 @@ public class StoresClientTest {
                 .getItem();
         assertThat(preList, hasSize(1));
 
-        storesClient.store(store.id()).delete()
+        storesClient.store(store.getId()).delete()
                 .subscribe().withSubscriber(UniAssertSubscriber.create())
                 .awaitItem()
                 .assertCompleted();

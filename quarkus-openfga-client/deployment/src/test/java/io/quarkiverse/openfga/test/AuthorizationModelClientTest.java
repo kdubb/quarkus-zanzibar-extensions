@@ -7,6 +7,7 @@ import static org.hamcrest.Matchers.*;
 
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 
@@ -43,7 +44,7 @@ public class AuthorizationModelClientTest {
     @BeforeEach
     public void createTestStoreAndModel() {
         store = storesClient.create("test").await().atMost(ofSeconds(10));
-        storeClient = storesClient.store(store.id());
+        storeClient = storesClient.store(store.getId());
 
         // ensure it has an auth model
         var documentTypeDef = new TypeDefinition("document", Map.of("reader", Userset.direct()));
@@ -79,7 +80,7 @@ public class AuthorizationModelClientTest {
                 .subscribe().withSubscriber(UniAssertSubscriber.create())
                 .awaitItem()
                 .getItem()
-                .stream().map(Tuple::key).toList();
+                .stream().map(Tuple::getKey).collect(Collectors.toList());
 
         assertThat(foundTuples, equalTo(tuples));
     }

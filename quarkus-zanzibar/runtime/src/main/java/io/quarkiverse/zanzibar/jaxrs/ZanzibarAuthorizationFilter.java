@@ -25,14 +25,25 @@ public class ZanzibarAuthorizationFilter {
 
     public interface Result {
 
-        record Check(String type, String object, String relation, String user) implements Result {
+        final class Check implements Result {
+            public final String type;
+            public final String object;
+            public final String relation;
+            public final String user;
+
+            public Check(String type, String object, String relation, String user) {
+                this.type = type;
+                this.object = object;
+                this.relation = relation;
+                this.user = user;
+            }
         }
 
         static Check check(String type, String object, String relation, String user) {
             return new Check(type, object, relation, user);
         }
 
-        record NoCheck() implements Result {
+        final class NoCheck implements Result {
             public static NoCheck INSTANCE = new NoCheck();
         }
 
@@ -40,7 +51,7 @@ public class ZanzibarAuthorizationFilter {
             return NoCheck.INSTANCE;
         }
 
-        record Forbidden() implements Result {
+        final class Forbidden implements Result {
             public static Forbidden INSTANCE = new Forbidden();
         }
 
@@ -49,7 +60,14 @@ public class ZanzibarAuthorizationFilter {
         }
     }
 
-    record AuthorizationAnnotations(Optional<RelationAllowed> relationAllowed, Optional<ObjectQuery> objectQuery) {
+    class AuthorizationAnnotations {
+        Optional<RelationAllowed> relationAllowed;
+        Optional<RelationshipObject> objectQuery;
+
+        public AuthorizationAnnotations(Optional<RelationAllowed> relationAllowed, Optional<RelationshipObject> objectQuery) {
+            this.relationAllowed = relationAllowed;
+            this.objectQuery = objectQuery;
+        }
     }
 
     Map<Method, AuthorizationAnnotations> authorizationAnnotationsCache = new HashMap<>();
@@ -120,16 +138,31 @@ public class ZanzibarAuthorizationFilter {
     String queryObject(ObjectQuery query, ContainerRequestContext context) {
         var uriInfo = context.getUriInfo();
 
-        String object = switch (query.source()) {
-            case PATH -> uriInfo.getPathParameters().getFirst(query.sourceProperty());
-            case QUERY -> uriInfo.getQueryParameters().getFirst(query.sourceProperty());
-            case HEADER -> context.getHeaderString(query.sourceProperty());
-            case REQUEST -> ofNullable(context.getProperty(query.sourceProperty()))
-                    .map(Object::toString)
-                    .orElse(null);
-        };
+        String object;
+        switch (query.source()) {
+            case PATH:
+                object = uriInfo.getPathParameters().getFirst(query.sourceProperty());
+                break;
+            case QUERY:
+                object = uriInfo.getQueryParameters().getFirst(query.sourceProperty());
+                break;
+            case HEADER:
+                object = context.getHeaderString(query.sourceProperty());
+                break;
+            case REQUEST:
+                var value = context.getProperty(query.sourceProperty());
+                if (value != null) {
+                    object = value.toString();
+                } else {
+                    object = null;
+                }
+                break;
+            default:
+                throw new IllegalStateException("Invalid object source");
+        }
+
         if (object == null) {
-            throw new IllegalStateException("Invalid object from query");
+            throw new IllegalStateException("Invalid object from relationship specification");
         }
 
         return object;
@@ -139,7 +172,7 @@ public class ZanzibarAuthorizationFilter {
         return authorizationAnnotationsCache.computeIfAbsent(resourceInfo.getResourceMethod(), key -> {
 
             var relationAllowedAnn = findAnnotation(resourceInfo, RelationAllowed.class);
-            var objectQueryAnn = findAnnotation(resourceInfo, ObjectQuery.class);
+            var objectQueryAnn = findAnnotation(resourceInfo, RelationshipObject.class);
 
             return new AuthorizationAnnotations(relationAllowedAnn, objectQueryAnn);
         });

@@ -4,6 +4,9 @@ import static java.time.Duration.ofSeconds;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 
+import java.util.List;
+import java.util.Map;
+
 import javax.inject.Inject;
 
 import org.jboss.shrinkwrap.api.ShrinkWrap;
@@ -14,13 +17,16 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
+import io.quarkiverse.openfga.client.AuthorizationModelsClient;
 import io.quarkiverse.openfga.client.StoreClient;
 import io.quarkiverse.openfga.client.StoresClient;
-import io.quarkiverse.openfga.client.model.*;
+import io.quarkiverse.openfga.client.model.Store;
+import io.quarkiverse.openfga.client.model.TypeDefinition;
+import io.quarkiverse.openfga.client.model.Userset;
 import io.quarkus.test.QuarkusUnitTest;
 import io.smallrye.mutiny.helpers.test.UniAssertSubscriber;
 
-public class StoreClientTest {
+public class AuthorizationModelsClientTest {
 
     // Start unit test with extension loaded
     @RegisterExtension
@@ -32,11 +38,13 @@ public class StoreClientTest {
 
     Store store;
     StoreClient storeClient;
+    AuthorizationModelsClient authorizationModelsClient;
 
     @BeforeEach
     public void createTestStore() {
         store = storesClient.create("test").await().atMost(ofSeconds(10));
         storeClient = storesClient.store(store.getId());
+        authorizationModelsClient = storeClient.authorizationModels();
     }
 
     @AfterEach
@@ -47,37 +55,20 @@ public class StoreClientTest {
     }
 
     @Test
-    @DisplayName("Can Get Store")
-    public void canGetStore() {
+    @DisplayName("Can List Models")
+    public void canList() {
 
-        var foundStore = storeClient.get()
+        var typeDefinition = new TypeDefinition("document", Map.of("reader", Userset.direct()));
+
+        authorizationModelsClient.create(List.of(typeDefinition))
+                .subscribe().withSubscriber(UniAssertSubscriber.create())
+                .awaitItem();
+
+        var models = authorizationModelsClient.listAll()
                 .subscribe().withSubscriber(UniAssertSubscriber.create())
                 .awaitItem()
                 .getItem();
 
-        assertThat(foundStore, equalTo(store));
+        assertThat(models, hasSize(1));
     }
-
-    @Test
-    @DisplayName("Can Delete Store")
-    public void canDeleteStores() {
-
-        var preList = storesClient.listAll()
-                .subscribe().withSubscriber(UniAssertSubscriber.create())
-                .awaitItem()
-                .getItem();
-        assertThat(preList, hasItem(store));
-
-        storeClient.delete()
-                .subscribe().withSubscriber(UniAssertSubscriber.create())
-                .awaitItem()
-                .assertCompleted();
-
-        var postList = storesClient.listAll()
-                .subscribe().withSubscriber(UniAssertSubscriber.create())
-                .awaitItem()
-                .getItem();
-        assertThat(postList, not(hasItem(store)));
-    }
-
 }

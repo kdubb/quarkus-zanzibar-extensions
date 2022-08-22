@@ -2,31 +2,40 @@ package io.quarkiverse.openfga.client.model;
 
 import java.util.Objects;
 
-import io.quarkiverse.openfga.client.model.utils.Preconditions;
+import javax.annotation.Nullable;
 
-public final class TupleKey {
+public final class PartialTupleKey {
+    @Nullable
     private final String object;
+    @Nullable
     private final String relation;
+    @Nullable
     private final String user;
 
-    public TupleKey(String object, String relation, String user) {
-        this.object = Preconditions.parameterNonNull(object, "object");
-        this.relation = Preconditions.parameterNonNull(relation, "relation");
-        this.user = Preconditions.parameterNonNull(user, "user");
+    public PartialTupleKey(
+            @Nullable String object,
+            @Nullable String relation,
+            @Nullable String user) {
+        this.object = object;
+        this.relation = relation;
+        this.user = user;
     }
 
-    public static TupleKey of(String object, String relation, String user) {
-        return new TupleKey(object, relation, user);
+    public static PartialTupleKey of(@Nullable String object, @Nullable String relation, @Nullable String user) {
+        return new PartialTupleKey(object, relation, user);
     }
 
+    @Nullable
     public String getObject() {
         return object;
     }
 
+    @Nullable
     public String getRelation() {
         return relation;
     }
 
+    @Nullable
     public String getUser() {
         return user;
     }
@@ -37,7 +46,7 @@ public final class TupleKey {
             return true;
         if (obj == null || obj.getClass() != this.getClass())
             return false;
-        var that = (TupleKey) obj;
+        var that = (PartialTupleKey) obj;
         return Objects.equals(this.object, that.object) &&
                 Objects.equals(this.relation, that.relation) &&
                 Objects.equals(this.user, that.user);
@@ -50,7 +59,7 @@ public final class TupleKey {
 
     @Override
     public String toString() {
-        return "TupleKey[" +
+        return "PartialTupleKey[" +
                 "object=" + object + ", " +
                 "relation=" + relation + ", " +
                 "user=" + user + ']';

@@ -34,11 +34,13 @@ public class ZanzibarReactiveAuthorizationFilter extends ZanzibarAuthorizationFi
 
             context.abortWith(Response.status(FORBIDDEN).build());
 
-        } else if (checkResult instanceof Result.Check check) {
+        } else if (checkResult instanceof Result.Check) {
+
+            var check = (Result.Check) checkResult;
 
             context.suspend();
 
-            authorizer.check(check.type(), check.object(), check.relation(), check.user())
+            authorizer.check(check.type, check.object, check.relation, check.user)
                     .ifNoItem().after(timeout).fail()
                     .subscribe().with((allowed) -> {
 

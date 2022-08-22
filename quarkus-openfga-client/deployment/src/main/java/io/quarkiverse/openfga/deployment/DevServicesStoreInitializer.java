@@ -43,7 +43,7 @@ public class DevServicesStoreInitializer {
 
         var response = objectMapper.readValue(httpResponse.body(), CreateStoreResponse.class);
 
-        return response.id();
+        return response.getId();
     }
 
     public String createAuthorizationModel(String storeId, String modelJSON) throws Exception {
@@ -63,7 +63,7 @@ public class DevServicesStoreInitializer {
 
         var response = objectMapper.readValue(httpResponse.body(), WriteAuthorizationModelResponse.class);
 
-        return response.authorizationModelId();
+        return response.getAuthorizationModelId();
     }
 
 }

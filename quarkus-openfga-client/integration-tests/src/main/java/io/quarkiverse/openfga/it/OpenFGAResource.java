@@ -43,5 +43,4 @@ public class OpenFGAResource {
     public Uni<List<AuthorizationModel>> listModels() {
         return storeClient.authorizationModels().listAll();
     }
-
 }

@@ -26,7 +26,7 @@ public class AuthorizationModelsClient {
 
     public Uni<PaginatedList<AuthorizationModel>> list(@Nullable Integer pageSize, @Nullable String pagingToken) {
         return api.readAuthorizationModels(storeId, pageSize, pagingToken)
-                .map(res -> new PaginatedList<>(res.authorizationModels(), res.continuationToken()));
+                .map(res -> new PaginatedList<>(res.getAuthorizationModels(), res.getContinuationToken()));
     }
 
     public Uni<List<AuthorizationModel>> listAll() {
@@ -39,7 +39,7 @@ public class AuthorizationModelsClient {
 
     public Uni<String> create(List<TypeDefinition> typeDefinitions) {
         return api.writeAuthorizationModel(storeId, new TypeDefinitions(typeDefinitions))
-                .map(WriteAuthorizationModelResponse::authorizationModelId);
+                .map(WriteAuthorizationModelResponse::getAuthorizationModelId);
     }
 
     public AuthorizationModelClient model(String authorizationModelId) {
