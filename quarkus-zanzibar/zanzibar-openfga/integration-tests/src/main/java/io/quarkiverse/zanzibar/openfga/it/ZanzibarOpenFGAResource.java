@@ -16,8 +16,8 @@
  */
 package io.quarkiverse.zanzibar.openfga.it;
 
-import static io.quarkiverse.zanzibar.jaxrs.annotations.ObjectQuery.Source.PATH;
 import static io.quarkiverse.zanzibar.jaxrs.annotations.RelationAllowed.ANY;
+import static io.quarkiverse.zanzibar.jaxrs.annotations.RelationshipObject.Source.PATH;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
@@ -25,11 +25,11 @@ import javax.ws.rs.*;
 
 import io.quarkiverse.openfga.client.AuthorizationModelClient;
 import io.quarkiverse.openfga.client.model.TupleKey;
-import io.quarkiverse.zanzibar.jaxrs.annotations.ObjectQuery;
 import io.quarkiverse.zanzibar.jaxrs.annotations.RelationAllowed;
+import io.quarkiverse.zanzibar.jaxrs.annotations.RelationshipObject;
 import io.smallrye.mutiny.Uni;
 
-@ObjectQuery(source = PATH, sourceProperty = "id", type = "thing")
+@RelationshipObject(source = PATH, sourceProperty = "id", type = "thing")
 interface Things {
     @RelationAllowed(ANY)
     Uni<Void> authorize(String user, String relation, String object);

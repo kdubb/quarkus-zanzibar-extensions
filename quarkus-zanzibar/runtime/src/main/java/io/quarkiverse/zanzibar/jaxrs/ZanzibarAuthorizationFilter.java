@@ -18,8 +18,8 @@ import javax.ws.rs.core.Context;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 
 import io.quarkiverse.zanzibar.Authorizer;
-import io.quarkiverse.zanzibar.jaxrs.annotations.ObjectQuery;
 import io.quarkiverse.zanzibar.jaxrs.annotations.RelationAllowed;
+import io.quarkiverse.zanzibar.jaxrs.annotations.RelationshipObject;
 
 public class ZanzibarAuthorizationFilter {
 
@@ -135,7 +135,7 @@ public class ZanzibarAuthorizationFilter {
         return Result.check(objectQuery.type(), object, relation, user);
     }
 
-    String queryObject(ObjectQuery query, ContainerRequestContext context) {
+    String queryObject(RelationshipObject query, ContainerRequestContext context) {
         var uriInfo = context.getUriInfo();
 
         String object;

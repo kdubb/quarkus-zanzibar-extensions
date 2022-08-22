@@ -11,7 +11,7 @@ import java.lang.annotation.Target;
 @Inherited
 @Target({ TYPE, METHOD })
 @Retention(RUNTIME)
-public @interface ObjectQuery {
+public @interface RelationshipObject {
 
     enum Source {
         PATH,

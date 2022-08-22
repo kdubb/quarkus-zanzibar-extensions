@@ -15,7 +15,7 @@ a|icon:lock[title=Fixed at build time] [[quarkus-zanzibar_quarkus.zanzibar.filte
 [.description]
 --
 Whether the filter is enabled. 
- When enabled all endpoints must have a resolvable `ObjectQuery` and `RelationAllowed` otherwise a FORBIDDEN will be returns to clients.
+ When enabled all endpoints must have a resolvable `RelationshipObject` and `RelationAllowed` otherwise a FORBIDDEN will be returns to clients.
 
 Environment variable: `+++QUARKUS_ZANZIBAR_FILTER_ENABLED+++`
 --|boolean 
