@@ -99,7 +99,7 @@ public class API {
                 ExpectedStatus.NO_CONTENT);
     }
 
-    public Uni<ReadAssertionsResponse> readAssertions(String storeId, String authorizationModelId) {
+    public Uni<ReadAssertionsResponse> readAssertions(String storeId, @Nullable String authorizationModelId) {
         return execute(
                 request("Read Assertions",
                         GET,

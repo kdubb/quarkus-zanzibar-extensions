@@ -20,7 +20,7 @@ public class AuthorizationModelClient {
     private final String storeId;
     private final String authorizationModelId;
 
-    public AuthorizationModelClient(API api, String storeId, String authorizationModelId) {
+    public AuthorizationModelClient(API api, String storeId, @Nullable String authorizationModelId) {
         this.api = api;
         this.storeId = storeId;
         this.authorizationModelId = authorizationModelId;
@@ -41,27 +41,42 @@ public class AuthorizationModelClient {
                 .map(ExpandResponse::getTree);
     }
 
-    public Uni<List<String>> listObjects(String type, String relation, String user, List<TupleKey> contextualTupleKeys) {
+    public Uni<List<String>> listObjects(String type, @Nullable String relation, String user,
+            @Nullable List<TupleKey> contextualTupleKeys) {
         return api
                 .listObjects(storeId,
                         new ListObjectsBody(authorizationModelId, type, relation, user,
-                                new ContextualTupleKeys(contextualTupleKeys)))
+                                contextualTupleKeys != null ? new ContextualTupleKeys(contextualTupleKeys) : null))
                 .map(ListObjectsResponse::getObjectIds);
     }
 
-    public Uni<PaginatedList<Tuple>> queryTuples(TupleKey tupleKey, @Nullable Integer pageSize, @Nullable String pagingToken) {
+    public Uni<PaginatedList<Tuple>> queryTuples(PartialTupleKey tupleKey, @Nullable Integer pageSize,
+            @Nullable String pagingToken) {
         return api.read(storeId, new ReadBody(tupleKey, authorizationModelId, pageSize, pagingToken))
                 .map(res -> new PaginatedList<>(res.getTuples(), res.getContinuationToken()));
     }
 
-    public Uni<List<Tuple>> queryAllTuples(TupleKey tupleKey) {
+    public Uni<List<Tuple>> queryAllTuples(PartialTupleKey tupleKey) {
         return queryAllTuples(tupleKey, null);
     }
 
-    public Uni<List<Tuple>> queryAllTuples(TupleKey tupleKey, @Nullable Integer pageSize) {
+    public Uni<List<Tuple>> queryAllTuples(PartialTupleKey tupleKey, @Nullable Integer pageSize) {
         return collectAllPages(pageSize, (currentPageSize, currentToken) -> {
             return queryTuples(tupleKey, currentPageSize, currentToken);
         });
+    }
+
+    public Uni<PaginatedList<Tuple>> readTuples(@Nullable Integer pageSize, @Nullable String pagingToken) {
+        return api.readTuples(storeId, new ReadTuplesBody(pageSize, pagingToken))
+                .map(res -> new PaginatedList<>(res.getTuples(), res.getContinuationToken()));
+    }
+
+    public Uni<List<Tuple>> readAllTuples() {
+        return readAllTuples(null);
+    }
+
+    public Uni<List<Tuple>> readAllTuples(@Nullable Integer pageSize) {
+        return collectAllPages(pageSize, this::readTuples);
     }
 
     public Uni<Void> write(TupleKey tupleKey) {

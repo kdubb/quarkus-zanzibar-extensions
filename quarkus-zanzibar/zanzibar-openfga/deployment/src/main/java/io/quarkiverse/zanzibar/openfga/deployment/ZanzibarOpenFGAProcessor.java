@@ -1,6 +1,6 @@
 package io.quarkiverse.zanzibar.openfga.deployment;
 
-import io.quarkiverse.zanzibar.openfga.ZanzibarOpenFGAAuthorizer;
+import io.quarkiverse.zanzibar.openfga.ZanzibarOpenFGARelationshipManager;
 import io.quarkus.arc.deployment.AdditionalBeanBuildItem;
 import io.quarkus.deployment.annotations.BuildProducer;
 import io.quarkus.deployment.annotations.BuildStep;
@@ -19,7 +19,7 @@ class ZanzibarOpenFGAProcessor {
     void registerAuthorizer(BuildProducer<AdditionalBeanBuildItem> additionalBeans) {
         additionalBeans.produce(
                 AdditionalBeanBuildItem.builder()
-                        .addBeanClass(ZanzibarOpenFGAAuthorizer.class)
+                        .addBeanClass(ZanzibarOpenFGARelationshipManager.class)
                         .build());
     }
 

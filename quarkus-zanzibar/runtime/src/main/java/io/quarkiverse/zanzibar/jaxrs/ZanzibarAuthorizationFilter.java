@@ -1,14 +1,15 @@
 package io.quarkiverse.zanzibar.jaxrs;
 
+import static io.quarkiverse.zanzibar.jaxrs.annotations.FGADynamicObject.Source.PATH;
 import static java.util.Optional.empty;
 import static java.util.Optional.ofNullable;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.time.Duration;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javax.inject.Inject;
 import javax.ws.rs.container.ContainerRequestContext;
@@ -16,12 +17,14 @@ import javax.ws.rs.container.ResourceInfo;
 import javax.ws.rs.core.Context;
 
 import org.eclipse.microprofile.config.inject.ConfigProperty;
+import org.jboss.logging.Logger;
 
-import io.quarkiverse.zanzibar.Authorizer;
-import io.quarkiverse.zanzibar.jaxrs.annotations.RelationAllowed;
-import io.quarkiverse.zanzibar.jaxrs.annotations.RelationshipObject;
+import io.quarkiverse.zanzibar.RelationshipManager;
+import io.quarkiverse.zanzibar.jaxrs.annotations.*;
 
 public class ZanzibarAuthorizationFilter {
+
+    public static final Logger log = Logger.getLogger(ZanzibarAuthorizationFilter.class);
 
     public interface Result {
 
@@ -36,6 +39,16 @@ public class ZanzibarAuthorizationFilter {
                 this.object = object;
                 this.relation = relation;
                 this.user = user;
+            }
+
+            @Override
+            public String toString() {
+                return "Check{" +
+                        "type='" + type + '\'' +
+                        ", object='" + object + '\'' +
+                        ", relation='" + relation + '\'' +
+                        ", user='" + user + '\'' +
+                        '}';
             }
         }
 
@@ -60,20 +73,23 @@ public class ZanzibarAuthorizationFilter {
         }
     }
 
-    class AuthorizationAnnotations {
-        Optional<RelationAllowed> relationAllowed;
-        Optional<RelationshipObject> objectQuery;
+    static class AuthorizationAnnotations {
+        Optional<FGARelation> relationAllowed;
+        Optional<FGADynamicObject> dynamicObject;
+        Optional<FGAObject> constantObject;
 
-        public AuthorizationAnnotations(Optional<RelationAllowed> relationAllowed, Optional<RelationshipObject> objectQuery) {
+        public AuthorizationAnnotations(Optional<FGARelation> relationAllowed, Optional<FGADynamicObject> dynamicObject,
+                Optional<FGAObject> constantObject) {
             this.relationAllowed = relationAllowed;
-            this.objectQuery = objectQuery;
+            this.dynamicObject = dynamicObject;
+            this.constantObject = constantObject;
         }
     }
 
-    Map<Method, AuthorizationAnnotations> authorizationAnnotationsCache = new HashMap<>();
+    Map<Method, AuthorizationAnnotations> authorizationAnnotationsCache = new ConcurrentHashMap<>();
 
     @Inject
-    Authorizer authorizer;
+    RelationshipManager relationshipManager;
 
     @Context
     ResourceInfo resourceInfo;
@@ -91,24 +107,41 @@ public class ZanzibarAuthorizationFilter {
         // Determine relation
 
         if (authorizationAnnotations.relationAllowed.isEmpty()) {
-            throw new IllegalStateException("RelationAllowed not found");
+            String message = FGARelation.class.getSimpleName() + " not found for method "
+                    + resourceInfo.getResourceMethod().toGenericString();
+            throw new IllegalStateException(message);
         }
         var relationAllowed = authorizationAnnotations.relationAllowed.get();
         var relation = relationAllowed.value();
 
         // Check for public/any access
-        if (relation.equals(RelationAllowed.ANY)) {
+        if (relation.equals(FGARelation.ANY)) {
+            log.debug("Skipping authorization check, any relation allowed");
             return Result.noCheck();
         }
 
         // Determine object
 
-        if (authorizationAnnotations.objectQuery.isEmpty()) {
-            throw new IllegalStateException("ObjectQuery not found");
-        }
-        var objectQuery = authorizationAnnotations.objectQuery.get();
+        String objectType;
+        String objectId;
+        if (authorizationAnnotations.dynamicObject.isPresent()) {
 
-        var object = queryObject(objectQuery, context);
+            var dynamicObject = authorizationAnnotations.dynamicObject.get();
+
+            objectType = dynamicObject.type();
+            objectId = lookupObjectId(dynamicObject, context);
+
+        } else if (authorizationAnnotations.constantObject.isPresent()) {
+
+            var constantObject = authorizationAnnotations.constantObject.get();
+
+            objectType = constantObject.type();
+            objectId = constantObject.id();
+
+        } else {
+            String message = "No FGA object specifier found for method " + resourceInfo.getResourceMethod().toGenericString();
+            throw new IllegalStateException(message);
+        }
 
         // Determine user
 
@@ -120,8 +153,13 @@ public class ZanzibarAuthorizationFilter {
             // No principal... map to unauthenticated (if available)
 
             if (unauthenticatedUser.isEmpty()) {
+
+                log.debug("No use principal or name and unauthenticated users are disallowed");
+
                 return Result.forbidden();
             }
+
+            log.debug("No use principal or name, authorizing the unauthenticated user");
 
             user = unauthenticatedUser.get();
 
@@ -132,10 +170,10 @@ public class ZanzibarAuthorizationFilter {
 
         // Build check
 
-        return Result.check(objectQuery.type(), object, relation, user);
+        return Result.check(objectType, objectId, relation, user);
     }
 
-    String queryObject(RelationshipObject query, ContainerRequestContext context) {
+    String lookupObjectId(FGADynamicObject query, ContainerRequestContext context) {
         var uriInfo = context.getUriInfo();
 
         String object;
@@ -171,10 +209,40 @@ public class ZanzibarAuthorizationFilter {
     AuthorizationAnnotations getAuthorizationAnnotations(ResourceInfo resourceInfo) {
         return authorizationAnnotationsCache.computeIfAbsent(resourceInfo.getResourceMethod(), key -> {
 
-            var relationAllowedAnn = findAnnotation(resourceInfo, RelationAllowed.class);
-            var objectQueryAnn = findAnnotation(resourceInfo, RelationshipObject.class);
+            var relationAllowedAnn = findAnnotation(resourceInfo, FGARelation.class);
+            var constantObjectAnn = findAnnotation(resourceInfo, FGAObject.class);
+            var dynamicObjectAnn = findAnnotation(resourceInfo, FGADynamicObject.class);
 
-            return new AuthorizationAnnotations(relationAllowedAnn, objectQueryAnn);
+            if (dynamicObjectAnn.isEmpty()) {
+                var pathObjectAnn = findAnnotation(resourceInfo, FGAPathObject.class);
+                if (pathObjectAnn.isPresent()) {
+                    dynamicObjectAnn = Optional
+                            .of(new FGADynamicObject.Literal(PATH, pathObjectAnn.get().param(), pathObjectAnn.get().type()));
+                }
+            }
+            if (dynamicObjectAnn.isEmpty()) {
+                var queryObjectAnn = findAnnotation(resourceInfo, FGAQueryObject.class);
+                if (queryObjectAnn.isPresent()) {
+                    dynamicObjectAnn = Optional
+                            .of(new FGADynamicObject.Literal(PATH, queryObjectAnn.get().param(), queryObjectAnn.get().type()));
+                }
+            }
+            if (dynamicObjectAnn.isEmpty()) {
+                var headerObjectAnn = findAnnotation(resourceInfo, FGAHeaderObject.class);
+                if (headerObjectAnn.isPresent()) {
+                    dynamicObjectAnn = Optional
+                            .of(new FGADynamicObject.Literal(PATH, headerObjectAnn.get().name(), headerObjectAnn.get().type()));
+                }
+            }
+            if (dynamicObjectAnn.isEmpty()) {
+                var requestObjectAnn = findAnnotation(resourceInfo, FGARequestObject.class);
+                if (requestObjectAnn.isPresent()) {
+                    dynamicObjectAnn = Optional.of(new FGADynamicObject.Literal(PATH, requestObjectAnn.get().property(),
+                            requestObjectAnn.get().type()));
+                }
+            }
+
+            return new AuthorizationAnnotations(relationAllowedAnn, dynamicObjectAnn, constantObjectAnn);
         });
     }
 

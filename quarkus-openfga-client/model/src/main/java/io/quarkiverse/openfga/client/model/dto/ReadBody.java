@@ -6,13 +6,14 @@ import javax.annotation.Nullable;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import io.quarkiverse.openfga.client.model.TupleKey;
+import io.quarkiverse.openfga.client.model.PartialTupleKey;
 import io.quarkiverse.openfga.client.model.utils.Preconditions;
 
 public final class ReadBody {
     @JsonProperty("tuple_key")
-    private final TupleKey tupleKey;
+    private final PartialTupleKey tupleKey;
     @JsonProperty("authorization_model_id")
+    @Nullable
     private final String authorizationModelId;
     @JsonProperty("page_size")
     @Nullable
@@ -21,22 +22,23 @@ public final class ReadBody {
     @Nullable
     private final String continuationToken;
 
-    public ReadBody(@JsonProperty("tuple_key") TupleKey tupleKey,
-            @JsonProperty("authorization_model_id") String authorizationModelId,
+    public ReadBody(@JsonProperty("tuple_key") PartialTupleKey tupleKey,
+            @JsonProperty("authorization_model_id") @Nullable String authorizationModelId,
             @JsonProperty("page_size") @Nullable Integer pageSize,
             @JsonProperty("continuation_token") @Nullable String continuationToken) {
         this.tupleKey = Preconditions.parameterNonNull(tupleKey, "tupleKey");
-        this.authorizationModelId = Preconditions.parameterNonNull(authorizationModelId, "authorizationModelId");
+        this.authorizationModelId = authorizationModelId;
         this.pageSize = pageSize;
         this.continuationToken = continuationToken;
     }
 
     @JsonProperty("tuple_key")
-    public TupleKey getTupleKey() {
+    public PartialTupleKey getTupleKey() {
         return tupleKey;
     }
 
     @JsonProperty("authorization_model_id")
+    @Nullable
     public String getAuthorizationModelId() {
         return authorizationModelId;
     }

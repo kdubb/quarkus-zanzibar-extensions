@@ -11,18 +11,9 @@ import java.lang.annotation.Target;
 @Inherited
 @Target({ TYPE, METHOD })
 @Retention(RUNTIME)
-public @interface RelationshipObject {
+public @interface FGARequestObject {
 
-    enum Source {
-        PATH,
-        QUERY,
-        HEADER,
-        REQUEST
-    }
-
-    Source source() default Source.PATH;
-
-    String sourceProperty();
+    String property();
 
     String type();
 

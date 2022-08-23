@@ -7,7 +7,6 @@ import javax.annotation.Nullable;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import io.quarkiverse.openfga.client.model.TupleKeys;
-import io.quarkiverse.openfga.client.model.utils.Preconditions;
 
 public final class WriteBody {
     @Nullable
@@ -15,13 +14,14 @@ public final class WriteBody {
     @Nullable
     private final TupleKeys deletes;
     @JsonProperty("authorization_model_id")
+    @Nullable
     private final String authorizationModelId;
 
     public WriteBody(@Nullable TupleKeys writes, @Nullable TupleKeys deletes,
-            @JsonProperty("authorization_model_id") String authorizationModelId) {
+            @JsonProperty("authorization_model_id") @Nullable String authorizationModelId) {
         this.writes = writes;
         this.deletes = deletes;
-        this.authorizationModelId = Preconditions.parameterNonNull(authorizationModelId, "authorizationModelId");
+        this.authorizationModelId = authorizationModelId;
     }
 
     @Nullable
@@ -35,6 +35,7 @@ public final class WriteBody {
     }
 
     @JsonProperty("authorization_model_id")
+    @Nullable
     public String getAuthorizationModelId() {
         return authorizationModelId;
     }

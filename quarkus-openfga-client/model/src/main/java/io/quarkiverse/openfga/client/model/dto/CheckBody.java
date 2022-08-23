@@ -17,16 +17,17 @@ public final class CheckBody {
     @Nullable
     private final ContextualTupleKeys contextualTupleKeys;
     @JsonProperty("authorization_model_id")
+    @Nullable
     private final String authorizationModelId;
     @Nullable
     private final Boolean trace;
 
     public CheckBody(@JsonProperty("tuple_key") TupleKey tupleKey,
             @JsonProperty("contextual_tuples") @Nullable ContextualTupleKeys contextualTupleKeys,
-            @JsonProperty("authorization_model_id") String authorizationModelId, @Nullable Boolean trace) {
+            @JsonProperty("authorization_model_id") @Nullable String authorizationModelId, @Nullable Boolean trace) {
         this.tupleKey = Preconditions.parameterNonNull(tupleKey, "tupleKey");
         this.contextualTupleKeys = contextualTupleKeys;
-        this.authorizationModelId = Preconditions.parameterNonNull(authorizationModelId, "authorizationModelId");
+        this.authorizationModelId = authorizationModelId;
         this.trace = trace;
     }
 
@@ -42,6 +43,7 @@ public final class CheckBody {
     }
 
     @JsonProperty("authorization_model_id")
+    @Nullable
     public String getAuthorizationModelId() {
         return authorizationModelId;
     }
