@@ -6,12 +6,12 @@ import javax.annotation.Nullable;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import io.quarkiverse.openfga.client.model.TupleKey;
+import io.quarkiverse.openfga.client.model.PartialTupleKey;
 import io.quarkiverse.openfga.client.model.utils.Preconditions;
 
 public final class ReadBody {
     @JsonProperty("tuple_key")
-    private final TupleKey tupleKey;
+    private final PartialTupleKey tupleKey;
     @JsonProperty("authorization_model_id")
     private final String authorizationModelId;
     @JsonProperty("page_size")
@@ -21,7 +21,7 @@ public final class ReadBody {
     @Nullable
     private final String continuationToken;
 
-    public ReadBody(@JsonProperty("tuple_key") TupleKey tupleKey,
+    public ReadBody(@JsonProperty("tuple_key") PartialTupleKey tupleKey,
             @JsonProperty("authorization_model_id") String authorizationModelId,
             @JsonProperty("page_size") @Nullable Integer pageSize,
             @JsonProperty("continuation_token") @Nullable String continuationToken) {
@@ -32,7 +32,7 @@ public final class ReadBody {
     }
 
     @JsonProperty("tuple_key")
-    public TupleKey getTupleKey() {
+    public PartialTupleKey getTupleKey() {
         return tupleKey;
     }
 
