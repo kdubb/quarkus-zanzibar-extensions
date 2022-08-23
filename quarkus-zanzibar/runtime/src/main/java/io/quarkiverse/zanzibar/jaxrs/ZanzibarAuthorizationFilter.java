@@ -17,7 +17,7 @@ import javax.ws.rs.core.Context;
 
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 
-import io.quarkiverse.zanzibar.Authorizer;
+import io.quarkiverse.zanzibar.RelationshipManager;
 import io.quarkiverse.zanzibar.jaxrs.annotations.RelationAllowed;
 import io.quarkiverse.zanzibar.jaxrs.annotations.RelationshipObject;
 
@@ -60,7 +60,7 @@ public class ZanzibarAuthorizationFilter {
         }
     }
 
-    class AuthorizationAnnotations {
+    static class AuthorizationAnnotations {
         Optional<RelationAllowed> relationAllowed;
         Optional<RelationshipObject> objectQuery;
 
@@ -73,7 +73,7 @@ public class ZanzibarAuthorizationFilter {
     Map<Method, AuthorizationAnnotations> authorizationAnnotationsCache = new HashMap<>();
 
     @Inject
-    Authorizer authorizer;
+    RelationshipManager relationshipManager;
 
     @Context
     ResourceInfo resourceInfo;

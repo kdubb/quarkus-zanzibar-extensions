@@ -13,6 +13,8 @@ import org.jboss.logging.Logger;
 import org.jboss.resteasy.reactive.server.spi.ResteasyReactiveContainerRequestContext;
 import org.jboss.resteasy.reactive.server.spi.ResteasyReactiveContainerRequestFilter;
 
+import io.quarkiverse.zanzibar.Relationship;
+
 @ApplicationScoped
 @Provider
 @Priority(AUTHORIZATION)
@@ -40,7 +42,7 @@ public class ZanzibarReactiveAuthorizationFilter extends ZanzibarAuthorizationFi
 
             context.suspend();
 
-            authorizer.check(check.type, check.object, check.relation, check.user)
+            relationshipManager.check(Relationship.of(check.type, check.object, check.relation, check.user))
                     .ifNoItem().after(timeout).fail()
                     .subscribe().with((allowed) -> {
 

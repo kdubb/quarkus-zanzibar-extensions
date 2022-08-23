@@ -19,12 +19,14 @@ package io.quarkiverse.zanzibar.openfga.it;
 import static io.quarkiverse.zanzibar.jaxrs.annotations.RelationAllowed.ANY;
 import static io.quarkiverse.zanzibar.jaxrs.annotations.RelationshipObject.Source.PATH;
 
+import java.util.List;
+
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.ws.rs.*;
 
-import io.quarkiverse.openfga.client.AuthorizationModelClient;
-import io.quarkiverse.openfga.client.model.TupleKey;
+import io.quarkiverse.zanzibar.Relationship;
+import io.quarkiverse.zanzibar.RelationshipManager;
 import io.quarkiverse.zanzibar.jaxrs.annotations.RelationAllowed;
 import io.quarkiverse.zanzibar.jaxrs.annotations.RelationshipObject;
 import io.smallrye.mutiny.Uni;
@@ -41,13 +43,13 @@ interface Things {
 public class ZanzibarOpenFGAResource implements Things {
 
     @Inject
-    AuthorizationModelClient authorizationModelClient;
+    RelationshipManager relationshipManager;
 
     @POST
     @Path("authorize/{user}")
     public Uni<Void> authorize(@PathParam("user") String user, @QueryParam("relation") String relation,
             @QueryParam("object") String object) {
-        return authorizationModelClient.write(TupleKey.of("thing:" + object, relation, user));
+        return relationshipManager.add(List.of(Relationship.of("thing", object, relation, user)));
     }
 
     @GET

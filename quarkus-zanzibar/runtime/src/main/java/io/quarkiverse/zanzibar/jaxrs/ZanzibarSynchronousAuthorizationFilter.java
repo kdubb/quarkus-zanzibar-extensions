@@ -15,6 +15,8 @@ import javax.ws.rs.ext.Provider;
 
 import org.jboss.logging.Logger;
 
+import io.quarkiverse.zanzibar.Relationship;
+
 @ApplicationScoped
 @Provider
 @Priority(AUTHORIZATION)
@@ -41,7 +43,7 @@ public class ZanzibarSynchronousAuthorizationFilter extends ZanzibarAuthorizatio
 
             try {
 
-                var allowed = authorizer.check(check.type, check.object, check.relation, check.user)
+                var allowed = relationshipManager.check(Relationship.of(check.type, check.object, check.relation, check.user))
                         .await().atMost(Duration.ofSeconds(10));
 
                 if (!allowed) {
