@@ -1,7 +1,5 @@
 package io.quarkiverse.openfga.deployment;
 
-import org.jboss.logging.Logger;
-
 import io.quarkiverse.openfga.client.api.API;
 import io.quarkiverse.openfga.client.model.Store;
 import io.quarkiverse.openfga.runtime.config.DefaultBeans;
@@ -16,9 +14,7 @@ import io.quarkus.deployment.builditem.nativeimage.ReflectiveClassBuildItem;
 
 class OpenFGAProcessor {
 
-    static final String FEATURE = "open-fga";
-
-    private static final Logger log = Logger.getLogger(OpenFGAProcessor.class);
+    static final String FEATURE = "openfga-client";
 
     @BuildStep
     FeatureBuildItem feature() {

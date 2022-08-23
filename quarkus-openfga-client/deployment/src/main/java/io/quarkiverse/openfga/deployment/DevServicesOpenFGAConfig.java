@@ -31,7 +31,7 @@ public class DevServicesOpenFGAConfig {
      * If a matching container is found, it is used, and so a second one is not started.
      * Otherwise, Dev Services for OpenFGA starts a new container.
      * <p>
-     * The discovery uses the {@code quarkus-dev-service-open-fga} label.
+     * The discovery uses the {@code quarkus-dev-service-openfga} label.
      * The value is configured using the {@code service-name} property.
      * <p>
      * Container sharing is only used in dev mode.
@@ -40,16 +40,16 @@ public class DevServicesOpenFGAConfig {
     public boolean shared;
 
     /**
-     * The value of the {@code quarkus-dev-service-open-fga} label attached to the started container.
+     * The value of the {@code quarkus-dev-service-openfga} label attached to the started container.
      * This property is used when {@code shared} is set to {@code true}.
      * In this case, before starting a container, Dev Services for OpenFGA looks for a container with the
-     * {@code quarkus-dev-service-open-fga} label
+     * {@code quarkus-dev-service-openfga} label
      * set to the configured value. If found, it will use this container instead of starting a new one. Otherwise it
-     * starts a new container with the {@code quarkus-dev-service-open-fga} label set to the specified value.
+     * starts a new container with the {@code quarkus-dev-service-openfga} label set to the specified value.
      * <p>
      * This property is used when you need multiple shared OpenFGA instances.
      */
-    @ConfigItem(defaultValue = "open-fga")
+    @ConfigItem(defaultValue = "openfga")
     public String serviceName;
 
     /**

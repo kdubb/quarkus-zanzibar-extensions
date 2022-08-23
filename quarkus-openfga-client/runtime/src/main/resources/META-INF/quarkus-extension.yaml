@@ -2,9 +2,8 @@ name: OpenFGA
 description: OpenFGA client and JAX-RS fine grained authorization integration.
 metadata:
   keywords:
-    - open-fga
-    - fga
     - openfga
+    - fga
 #  guide: https://quarkiverse.github.io/quarkiverse-docs/openfga/dev/
 categories:
 - authorization

@@ -15,12 +15,12 @@ import io.quarkus.runtime.annotations.ConfigRoot;
 @ConfigRoot(name = NAME, phase = ConfigPhase.RUN_TIME)
 public class OpenFGAConfig {
 
-    public static final String NAME = "open-fga";
+    public static final String NAME = "openfga";
 
     /**
      * OpenFGA server URL.
      * <p>
-     * Example: http://open-fga:8080
+     * Example: http://openfga:8080
      */
     @ConfigItem
     public Optional<URL> url;

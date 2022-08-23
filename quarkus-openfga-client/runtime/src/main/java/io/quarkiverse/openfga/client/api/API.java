@@ -46,8 +46,8 @@ public class API {
     private final ObjectMapper objectMapper;
 
     @Inject
-    public API(@ConfigProperty(name = "quarkus.open-fga.url") URL url,
-            @ConfigProperty(name = "quarkus.open-fga.shared-key") Optional<String> sharedKey,
+    public API(@ConfigProperty(name = "quarkus.openfga.url") URL url,
+            @ConfigProperty(name = "quarkus.openfga.shared-key") Optional<String> sharedKey,
             Vertx vertx, ObjectMapper objectMapper) {
         var webClientOptions = new WebClientOptions()
                 .setSsl("https".equals(url.getProtocol()))
