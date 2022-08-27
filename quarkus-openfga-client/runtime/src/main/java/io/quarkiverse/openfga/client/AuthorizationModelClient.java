@@ -20,7 +20,7 @@ public class AuthorizationModelClient {
     private final String storeId;
     private final String authorizationModelId;
 
-    public AuthorizationModelClient(API api, String storeId, String authorizationModelId) {
+    public AuthorizationModelClient(API api, String storeId, @Nullable String authorizationModelId) {
         this.api = api;
         this.storeId = storeId;
         this.authorizationModelId = authorizationModelId;

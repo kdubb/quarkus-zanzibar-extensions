@@ -7,10 +7,10 @@ import javax.annotation.Nullable;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import io.quarkiverse.openfga.client.model.ContextualTupleKeys;
-import io.quarkiverse.openfga.client.model.utils.Preconditions;
 
 public final class ListObjectsBody {
     @JsonProperty("authorization_model_id")
+    @Nullable
     private final String authorizationModelId;
     @Nullable
     private final String type;
@@ -18,14 +18,14 @@ public final class ListObjectsBody {
     private final String relation;
     @Nullable
     private final String user;
-    @Nullable
     @JsonProperty("contextual_tuples")
+    @Nullable
     private final ContextualTupleKeys contextualTupleKeys;
 
-    public ListObjectsBody(@JsonProperty("authorization_model_id") String authorizationModelId, @Nullable String type,
-            @Nullable String relation, @Nullable String user,
+    public ListObjectsBody(@JsonProperty("authorization_model_id") @Nullable String authorizationModelId,
+            @Nullable String type, @Nullable String relation, @Nullable String user,
             @Nullable @JsonProperty("contextual_tuples") ContextualTupleKeys contextualTupleKeys) {
-        this.authorizationModelId = Preconditions.parameterNonNull(authorizationModelId, "authorizationModelId");
+        this.authorizationModelId = authorizationModelId;
         this.type = type;
         this.relation = relation;
         this.user = user;
@@ -33,6 +33,7 @@ public final class ListObjectsBody {
     }
 
     @JsonProperty("authorization_model_id")
+    @Nullable
     public String getAuthorizationModelId() {
         return authorizationModelId;
     }
@@ -52,8 +53,8 @@ public final class ListObjectsBody {
         return user;
     }
 
-    @Nullable
     @JsonProperty("contextual_tuples")
+    @Nullable
     public ContextualTupleKeys getContextualTupleKeys() {
         return contextualTupleKeys;
     }

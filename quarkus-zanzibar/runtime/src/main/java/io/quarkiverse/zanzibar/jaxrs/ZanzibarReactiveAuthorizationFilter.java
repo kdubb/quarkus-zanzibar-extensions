@@ -30,9 +30,11 @@ public class ZanzibarReactiveAuthorizationFilter extends ZanzibarAuthorizationFi
 
         if (checkResult instanceof Result.NoCheck) {
 
-            // No check needed
+            log.debug("Allowing request without check");
 
         } else if (checkResult instanceof Result.Forbidden) {
+
+            log.debug("Denying request");
 
             context.abortWith(Response.status(FORBIDDEN).build());
 
@@ -42,11 +44,18 @@ public class ZanzibarReactiveAuthorizationFilter extends ZanzibarAuthorizationFi
 
             context.suspend();
 
+            log.debugf(
+                    "Authorizing object-type=%s, object-id=%s, relation=%s, user=%s",
+                    check.type, check.object, check.relation, check.user);
+
             relationshipManager.check(Relationship.of(check.type, check.object, check.relation, check.user))
                     .ifNoItem().after(timeout).fail()
                     .subscribe().with((allowed) -> {
 
+                        log.debugf("Authorization %s", allowed ? "allowed" : "disallowed");
+
                         if (!allowed) {
+
                             context.abortWith(Response.status(FORBIDDEN).build());
                         }
 

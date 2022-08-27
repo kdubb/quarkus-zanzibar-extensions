@@ -11,9 +11,10 @@ import java.lang.annotation.Target;
 @Inherited
 @Target({ TYPE, METHOD })
 @Retention(RUNTIME)
-public @interface RelationAllowed {
+public @interface FGAHeaderObject {
 
-    String ANY = "*";
+    String name();
 
-    String value();
+    String type();
+
 }

@@ -16,8 +16,8 @@
  */
 package io.quarkiverse.zanzibar.openfga.it;
 
-import static io.quarkiverse.zanzibar.jaxrs.annotations.RelationAllowed.ANY;
-import static io.quarkiverse.zanzibar.jaxrs.annotations.RelationshipObject.Source.PATH;
+import static io.quarkiverse.zanzibar.jaxrs.annotations.FGADynamicObject.Source.PATH;
+import static io.quarkiverse.zanzibar.jaxrs.annotations.FGARelation.ANY;
 
 import java.util.List;
 
@@ -27,19 +27,19 @@ import javax.ws.rs.*;
 
 import io.quarkiverse.zanzibar.Relationship;
 import io.quarkiverse.zanzibar.RelationshipManager;
-import io.quarkiverse.zanzibar.jaxrs.annotations.RelationAllowed;
-import io.quarkiverse.zanzibar.jaxrs.annotations.RelationshipObject;
+import io.quarkiverse.zanzibar.jaxrs.annotations.FGADynamicObject;
+import io.quarkiverse.zanzibar.jaxrs.annotations.FGARelation;
 import io.smallrye.mutiny.Uni;
 
-@RelationshipObject(source = PATH, sourceProperty = "id", type = "thing")
+@FGADynamicObject(source = PATH, sourceProperty = "id", type = "thing")
 interface Things {
-    @RelationAllowed(ANY)
+    @FGARelation(ANY)
     Uni<Void> authorize(String user, String relation, String object);
 }
 
 @Path("/openfga")
 @ApplicationScoped
-@RelationAllowed("reader")
+@FGARelation("reader")
 public class ZanzibarOpenFGAResource implements Things {
 
     @Inject

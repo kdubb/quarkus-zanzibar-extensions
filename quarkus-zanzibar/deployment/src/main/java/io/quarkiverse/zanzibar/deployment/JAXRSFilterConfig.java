@@ -3,8 +3,8 @@ package io.quarkiverse.zanzibar.deployment;
 import java.time.Duration;
 import java.util.Optional;
 
-import io.quarkiverse.zanzibar.jaxrs.annotations.RelationAllowed;
-import io.quarkiverse.zanzibar.jaxrs.annotations.RelationshipObject;
+import io.quarkiverse.zanzibar.jaxrs.annotations.FGADynamicObject;
+import io.quarkiverse.zanzibar.jaxrs.annotations.FGARelation;
 import io.quarkus.runtime.annotations.ConfigGroup;
 import io.quarkus.runtime.annotations.ConfigItem;
 
@@ -17,8 +17,8 @@ public class JAXRSFilterConfig {
     /**
      * Whether the filter is enabled.
      * <p>
-     * When enabled all endpoints must have a resolvable {@link RelationshipObject} and
-     * {@link RelationAllowed} otherwise a FORBIDDEN will be returns to clients.
+     * When enabled all endpoints must have a resolvable {@link FGADynamicObject} and
+     * {@link FGARelation} otherwise a FORBIDDEN will be returns to clients.
      */
     @ConfigItem(defaultValue = "true")
     public boolean enabled;

@@ -13,6 +13,7 @@ public final class ReadBody {
     @JsonProperty("tuple_key")
     private final PartialTupleKey tupleKey;
     @JsonProperty("authorization_model_id")
+    @Nullable
     private final String authorizationModelId;
     @JsonProperty("page_size")
     @Nullable
@@ -22,11 +23,11 @@ public final class ReadBody {
     private final String continuationToken;
 
     public ReadBody(@JsonProperty("tuple_key") PartialTupleKey tupleKey,
-            @JsonProperty("authorization_model_id") String authorizationModelId,
+            @JsonProperty("authorization_model_id") @Nullable String authorizationModelId,
             @JsonProperty("page_size") @Nullable Integer pageSize,
             @JsonProperty("continuation_token") @Nullable String continuationToken) {
         this.tupleKey = Preconditions.parameterNonNull(tupleKey, "tupleKey");
-        this.authorizationModelId = Preconditions.parameterNonNull(authorizationModelId, "authorizationModelId");
+        this.authorizationModelId = authorizationModelId;
         this.pageSize = pageSize;
         this.continuationToken = continuationToken;
     }
@@ -37,6 +38,7 @@ public final class ReadBody {
     }
 
     @JsonProperty("authorization_model_id")
+    @Nullable
     public String getAuthorizationModelId() {
         return authorizationModelId;
     }

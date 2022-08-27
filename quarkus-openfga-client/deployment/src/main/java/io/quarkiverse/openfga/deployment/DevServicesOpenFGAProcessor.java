@@ -91,11 +91,14 @@ public class DevServicesOpenFGAProcessor {
                             + " this by starting your application with -D%s=%s",
                             URL_CONFIG_KEY, devService.getConfig().get(URL_CONFIG_KEY));
                 }
+            } else {
+                return null;
             }
-            compressor.close();
         } catch (Throwable t) {
             compressor.closeAndDumpCaptured();
             throw new RuntimeException(t);
+        } finally {
+            compressor.close();
         }
 
         if (first) {
