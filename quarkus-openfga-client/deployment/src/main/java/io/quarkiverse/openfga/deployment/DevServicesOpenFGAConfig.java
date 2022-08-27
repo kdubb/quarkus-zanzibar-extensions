@@ -17,7 +17,7 @@ public class DevServicesOpenFGAConfig {
      * a database when running in Dev or Test mode.
      */
     @ConfigItem
-    public Optional<Boolean> enabled = Optional.empty();
+    public Optional<Boolean> enabled;
 
     /**
      * The container image name to use, for container based DevServices providers.
@@ -73,17 +73,4 @@ public class DevServicesOpenFGAConfig {
      */
     @ConfigItem
     public Optional<String> authorizationModel;
-
-    @Override
-    public String toString() {
-        return "DevServicesOpenFGAConfig{" +
-                "enabled=" + enabled +
-                ", imageName=" + imageName +
-                ", shared=" + shared +
-                ", serviceName='" + serviceName + '\'' +
-                ", port=" + port +
-                ", storeName='" + storeName + '\'' +
-                ", authorizationModel=" + authorizationModel +
-                '}';
-    }
 }

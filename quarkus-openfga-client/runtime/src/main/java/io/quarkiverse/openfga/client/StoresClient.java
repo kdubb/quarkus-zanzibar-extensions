@@ -5,6 +5,8 @@ import static io.quarkiverse.openfga.client.utils.PaginatedList.collectAllPages;
 import java.util.List;
 
 import javax.annotation.Nullable;
+import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
 
 import io.quarkiverse.openfga.client.api.API;
 import io.quarkiverse.openfga.client.model.Store;
@@ -13,10 +15,12 @@ import io.quarkiverse.openfga.client.model.dto.CreateStoreResponse;
 import io.quarkiverse.openfga.client.utils.PaginatedList;
 import io.smallrye.mutiny.Uni;
 
+@ApplicationScoped
 public class StoresClient {
 
     private final API api;
 
+    @Inject
     public StoresClient(API api) {
         this.api = api;
     }

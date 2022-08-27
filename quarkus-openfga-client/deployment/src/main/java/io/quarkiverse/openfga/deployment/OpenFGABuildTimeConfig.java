@@ -15,13 +15,7 @@ public class OpenFGABuildTimeConfig {
     public boolean healthEnabled;
 
     /**
-     * Whether metrics are published in case a metrics extension is present.
-     */
-    @ConfigItem(name = "metrics.enabled")
-    public boolean metricsEnabled;
-
-    /**
-     * Whether tracing spans of driver commands are sent in case the smallrye-opentracing extension is present.
+     * Whether tracing spans of client commands are reported.
      */
     @ConfigItem(name = "tracing.enabled")
     public boolean tracingEnabled;
@@ -31,14 +25,4 @@ public class OpenFGABuildTimeConfig {
      */
     @ConfigItem
     public DevServicesOpenFGAConfig devservices;
-
-    @Override
-    public String toString() {
-        return "OpenFGABuildTimeConfig{" +
-                "healthEnabled=" + healthEnabled +
-                ", metricsEnabled=" + metricsEnabled +
-                ", tracingEnabled=" + tracingEnabled +
-                ", devservices=" + devservices +
-                '}';
-    }
 }

@@ -6,7 +6,7 @@ import io.quarkus.runtime.annotations.ConfigGroup;
 import io.quarkus.runtime.annotations.ConfigItem;
 
 @ConfigGroup
-public class TLSConfig {
+public class OpenFGATLSConfig {
 
     /**
      * Allows to bypass certificate validation on TLS communications.
@@ -16,7 +16,7 @@ public class TLSConfig {
      * type of attacks.
      */
     @ConfigItem
-    public Optional<Boolean> skipVerify = Optional.empty();
+    public Optional<Boolean> skipVerify;
 
     /**
      * Certificate bundle used to validate TLS communications with OpenFGA.

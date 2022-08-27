@@ -9,26 +9,26 @@ import static io.vertx.mutiny.core.http.HttpHeaders.ACCEPT;
 import static io.vertx.mutiny.core.http.HttpHeaders.CONTENT_TYPE;
 import static java.lang.String.format;
 
-import java.net.URL;
 import java.util.Map;
 import java.util.Optional;
 
 import javax.annotation.Nullable;
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
 
-import org.eclipse.microprofile.config.inject.ConfigProperty;
-
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.fasterxml.jackson.module.paramnames.ParameterNamesModule;
 
 import io.quarkiverse.openfga.client.model.TypeDefinitions;
 import io.quarkiverse.openfga.client.model.dto.*;
+import io.quarkiverse.openfga.runtime.config.OpenFGAConfig;
+import io.quarkus.runtime.TlsConfig;
 import io.smallrye.mutiny.Uni;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.RequestOptions;
 import io.vertx.ext.auth.authentication.Credentials;
 import io.vertx.ext.auth.authentication.TokenCredentials;
-import io.vertx.ext.web.client.WebClientOptions;
 import io.vertx.mutiny.core.Vertx;
 import io.vertx.mutiny.core.buffer.Buffer;
 import io.vertx.mutiny.ext.web.client.HttpRequest;
@@ -38,24 +38,29 @@ import io.vertx.mutiny.ext.web.codec.BodyCodec;
 import io.vertx.mutiny.uritemplate.UriTemplate;
 import io.vertx.mutiny.uritemplate.Variables;
 
-@ApplicationScoped
 public class API {
 
     private final WebClient webClient;
     private final Optional<Credentials> credentials;
     private final ObjectMapper objectMapper;
 
-    @Inject
-    public API(@ConfigProperty(name = "quarkus.openfga.url") URL url,
-            @ConfigProperty(name = "quarkus.openfga.shared-key") Optional<String> sharedKey,
-            Vertx vertx, ObjectMapper objectMapper) {
-        var webClientOptions = new WebClientOptions()
-                .setSsl("https".equals(url.getProtocol()))
-                .setDefaultHost(url.getHost())
-                .setDefaultPort(url.getPort() != -1 ? url.getPort() : url.getDefaultPort());
-        this.webClient = WebClient.create(vertx, webClientOptions);
-        this.credentials = sharedKey.map(TokenCredentials::new);
-        this.objectMapper = objectMapper;
+    public API(OpenFGAConfig config, TlsConfig tlsConfig, boolean tracingEnabled, Vertx vertx) {
+        this(VertxWebClientFactory.create(config, tlsConfig, tracingEnabled, vertx),
+                config.sharedKey.map(TokenCredentials::new));
+    }
+
+    public API(WebClient webClient, Optional<Credentials> credentials) {
+        this.webClient = webClient;
+        this.credentials = credentials;
+        this.objectMapper = new ObjectMapper()
+                .registerModule(new JavaTimeModule())
+                .registerModule(new Jdk8Module())
+                .registerModule(new ParameterNamesModule())
+                .setSerializationInclusion(JsonInclude.Include.NON_NULL);
+    }
+
+    public void close() {
+        webClient.close();
     }
 
     public Uni<ListStoresResponse> listStores(@Nullable Integer pageSize, @Nullable String continuationToken) {
