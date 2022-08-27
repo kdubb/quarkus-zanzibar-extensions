@@ -4,6 +4,8 @@ import static io.quarkus.deployment.annotations.ExecutionTime.RUNTIME_INIT;
 
 import javax.enterprise.context.ApplicationScoped;
 
+import org.jboss.logging.Logger;
+
 import io.quarkiverse.openfga.client.AuthorizationModelClient;
 import io.quarkiverse.openfga.client.StoreClient;
 import io.quarkiverse.openfga.client.api.API;
@@ -13,10 +15,7 @@ import io.quarkus.arc.deployment.SyntheticBeanBuildItem;
 import io.quarkus.deployment.annotations.BuildProducer;
 import io.quarkus.deployment.annotations.BuildStep;
 import io.quarkus.deployment.annotations.Record;
-import io.quarkus.deployment.builditem.CombinedIndexBuildItem;
-import io.quarkus.deployment.builditem.ExtensionSslNativeSupportBuildItem;
-import io.quarkus.deployment.builditem.FeatureBuildItem;
-import io.quarkus.deployment.builditem.SslNativeConfigBuildItem;
+import io.quarkus.deployment.builditem.*;
 import io.quarkus.deployment.builditem.nativeimage.ReflectiveClassBuildItem;
 import io.quarkus.vertx.deployment.VertxBuildItem;
 
@@ -48,9 +47,11 @@ class OpenFGAProcessor {
 
     @BuildStep
     @Record(RUNTIME_INIT)
-    void registerSyntheticBeans(OpenFGABuildTimeConfig buildTimeConfig, OpenFGAConfig runtimeConfig,
+    ServiceStartBuildItem registerSyntheticBeans(OpenFGABuildTimeConfig buildTimeConfig, OpenFGAConfig runtimeConfig,
             OpenFGARecorder recorder, VertxBuildItem vertx,
             BuildProducer<SyntheticBeanBuildItem> syntheticBeans) {
+
+        Logger.getLogger(OpenFGAProcessor.class).info("OpenFGA Runtime Config (BuildStep): " + runtimeConfig);
 
         var apiValue = recorder.createAPI(runtimeConfig.url, runtimeConfig.sharedKey, vertx.getVertx());
 
@@ -75,5 +76,7 @@ class OpenFGAProcessor {
                         .runtimeValue(recorder.createAuthorizationModelClient(apiValue, runtimeConfig.storeId,
                                 runtimeConfig.authorizationModelId))
                         .done());
+
+        return new ServiceStartBuildItem("openfga-client");
     }
 }
