@@ -1,16 +1,24 @@
 package io.quarkiverse.openfga.deployment;
 
+import static io.quarkus.deployment.annotations.ExecutionTime.RUNTIME_INIT;
+
+import javax.enterprise.context.ApplicationScoped;
+
+import io.quarkiverse.openfga.client.AuthorizationModelClient;
+import io.quarkiverse.openfga.client.StoreClient;
 import io.quarkiverse.openfga.client.api.API;
 import io.quarkiverse.openfga.client.model.Store;
-import io.quarkiverse.openfga.runtime.config.DefaultBeans;
-import io.quarkus.arc.deployment.AdditionalBeanBuildItem;
+import io.quarkiverse.openfga.runtime.config.OpenFGAConfig;
+import io.quarkus.arc.deployment.SyntheticBeanBuildItem;
 import io.quarkus.deployment.annotations.BuildProducer;
 import io.quarkus.deployment.annotations.BuildStep;
+import io.quarkus.deployment.annotations.Record;
 import io.quarkus.deployment.builditem.CombinedIndexBuildItem;
 import io.quarkus.deployment.builditem.ExtensionSslNativeSupportBuildItem;
 import io.quarkus.deployment.builditem.FeatureBuildItem;
 import io.quarkus.deployment.builditem.SslNativeConfigBuildItem;
 import io.quarkus.deployment.builditem.nativeimage.ReflectiveClassBuildItem;
+import io.quarkus.vertx.deployment.VertxBuildItem;
 
 class OpenFGAProcessor {
 
@@ -39,13 +47,33 @@ class OpenFGAProcessor {
     }
 
     @BuildStep
-    void registerAdditionalBeans(BuildProducer<AdditionalBeanBuildItem> additionalBeans) {
-        additionalBeans.produce(
-                AdditionalBeanBuildItem.builder()
-                        .addBeanClass(API.class)
-                        .addBeanClass(DefaultBeans.class)
-                        .setRemovable()
-                        .build());
-    }
+    @Record(RUNTIME_INIT)
+    void registerSyntheticBeans(OpenFGABuildTimeConfig buildTimeConfig, OpenFGAConfig runtimeConfig,
+            OpenFGARecorder recorder, VertxBuildItem vertx,
+            BuildProducer<SyntheticBeanBuildItem> syntheticBeans) {
 
+        var apiValue = recorder.createAPI(runtimeConfig.url, runtimeConfig.sharedKey, vertx.getVertx());
+
+        syntheticBeans.produce(
+                SyntheticBeanBuildItem.configure(API.class)
+                        .scope(ApplicationScoped.class)
+                        .runtimeValue(apiValue)
+                        .setRuntimeInit()
+                        .done());
+
+        syntheticBeans.produce(
+                SyntheticBeanBuildItem.configure(StoreClient.class)
+                        .scope(ApplicationScoped.class)
+                        .setRuntimeInit()
+                        .runtimeValue(recorder.createStoreClient(apiValue, runtimeConfig.storeId))
+                        .done());
+
+        syntheticBeans.produce(
+                SyntheticBeanBuildItem.configure(AuthorizationModelClient.class)
+                        .scope(ApplicationScoped.class)
+                        .setRuntimeInit()
+                        .runtimeValue(recorder.createAuthorizationModelClient(apiValue, runtimeConfig.storeId,
+                                runtimeConfig.authorizationModelId))
+                        .done());
+    }
 }

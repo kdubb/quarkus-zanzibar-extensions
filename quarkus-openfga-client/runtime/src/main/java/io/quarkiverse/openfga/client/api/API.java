@@ -14,10 +14,6 @@ import java.util.Map;
 import java.util.Optional;
 
 import javax.annotation.Nullable;
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
-
-import org.eclipse.microprofile.config.inject.ConfigProperty;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -38,17 +34,13 @@ import io.vertx.mutiny.ext.web.codec.BodyCodec;
 import io.vertx.mutiny.uritemplate.UriTemplate;
 import io.vertx.mutiny.uritemplate.Variables;
 
-@ApplicationScoped
 public class API {
 
     private final WebClient webClient;
     private final Optional<Credentials> credentials;
     private final ObjectMapper objectMapper;
 
-    @Inject
-    public API(@ConfigProperty(name = "quarkus.openfga.url") URL url,
-            @ConfigProperty(name = "quarkus.openfga.shared-key") Optional<String> sharedKey,
-            Vertx vertx, ObjectMapper objectMapper) {
+    public API(URL url, Optional<String> sharedKey, Vertx vertx, ObjectMapper objectMapper) {
         var webClientOptions = new WebClientOptions()
                 .setSsl("https".equals(url.getProtocol()))
                 .setDefaultHost(url.getHost())

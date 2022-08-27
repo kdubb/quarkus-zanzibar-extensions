@@ -23,7 +23,7 @@ public class OpenFGAConfig {
      * Example: http://openfga:8080
      */
     @ConfigItem
-    public Optional<URL> url;
+    public URL url;
 
     /**
      * Shared authentication key.
@@ -42,7 +42,7 @@ public class OpenFGAConfig {
      * Store id for default {@link StoreClient} bean.
      */
     @ConfigItem
-    public Optional<String> storeId;
+    public String storeId;
 
     /**
      * Authorization model id for default {@link AuthorizationModelClient} bean.
