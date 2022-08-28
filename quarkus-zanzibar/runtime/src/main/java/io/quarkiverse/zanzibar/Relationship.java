@@ -4,10 +4,10 @@ import java.util.Objects;
 
 public class Relationship {
 
-    private String objectType;
-    private String objectId;
-    private String relation;
-    private String useId;
+    private final String objectType;
+    private final String objectId;
+    private final String relation;
+    private final String useId;
 
     public Relationship(String objectType, String objectId, String relation, String useId) {
         this.objectType = objectType;
@@ -24,32 +24,16 @@ public class Relationship {
         return objectType;
     }
 
-    public void setObjectType(String objectType) {
-        this.objectType = objectType;
-    }
-
     public String getObjectId() {
         return objectId;
-    }
-
-    public void setObjectId(String objectId) {
-        this.objectId = objectId;
     }
 
     public String getRelation() {
         return relation;
     }
 
-    public void setRelation(String relation) {
-        this.relation = relation;
-    }
-
     public String getUseId() {
         return useId;
-    }
-
-    public void setUseId(String useId) {
-        this.useId = useId;
     }
 
     @Override

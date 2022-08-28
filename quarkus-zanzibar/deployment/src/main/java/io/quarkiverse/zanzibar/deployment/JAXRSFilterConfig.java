@@ -24,6 +24,12 @@ public class JAXRSFilterConfig {
     public boolean enabled;
 
     /**
+     * Should access to resource methods without FGA annotations be denied.
+     */
+    @ConfigItem(defaultValue = "true")
+    public boolean denyUnannotatedResourceMethods;
+
+    /**
      * Name used for authorization when the request is unauthenticated.
      */
     @ConfigItem

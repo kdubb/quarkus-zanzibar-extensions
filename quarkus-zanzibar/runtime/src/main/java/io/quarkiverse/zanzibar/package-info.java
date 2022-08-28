@@ -1,4 +1,4 @@
-@ParametersAreNullableByDefault
+@ParametersAreNonnullByDefault
 package io.quarkiverse.zanzibar;
 
-import javax.annotation.ParametersAreNullableByDefault;
+import javax.annotation.ParametersAreNonnullByDefault;

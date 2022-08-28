@@ -22,6 +22,17 @@ Environment variable: `+++QUARKUS_ZANZIBAR_FILTER_ENABLED+++`
 |`true`
 
 
+a|icon:lock[title=Fixed at build time] [[quarkus-zanzibar_quarkus.zanzibar.filter.deny-unannotated-resource-methods]]`link:#quarkus-zanzibar_quarkus.zanzibar.filter.deny-unannotated-resource-methods[quarkus.zanzibar.filter.deny-unannotated-resource-methods]`
+
+[.description]
+--
+Should access to resource methods without FGA annotations be denied.
+
+Environment variable: `+++QUARKUS_ZANZIBAR_FILTER_DENY_UNANNOTATED_RESOURCE_METHODS+++`
+--|boolean 
+|`true`
+
+
 a|icon:lock[title=Fixed at build time] [[quarkus-zanzibar_quarkus.zanzibar.filter.unauthenticated-user]]`link:#quarkus-zanzibar_quarkus.zanzibar.filter.unauthenticated-user[quarkus.zanzibar.filter.unauthenticated-user]`
 
 [.description]

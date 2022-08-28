@@ -19,6 +19,10 @@
       <artifactId>quarkus-caffeine-deployment</artifactId>
     </dependency>
     <dependency>
+      <groupId>io.quarkus</groupId>
+      <artifactId>quarkus-resteasy-reactive-server-spi-deployment</artifactId>
+    </dependency>
+    <dependency>
       <groupId>io.quarkiverse.zanzibar</groupId>
       <artifactId>quarkus-zanzibar</artifactId>
       <version>${project.version}</version>

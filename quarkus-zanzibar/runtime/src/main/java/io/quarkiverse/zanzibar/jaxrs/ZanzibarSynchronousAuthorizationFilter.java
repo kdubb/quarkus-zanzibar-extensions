@@ -1,66 +1,58 @@
 package io.quarkiverse.zanzibar.jaxrs;
 
-import static javax.ws.rs.Priorities.AUTHORIZATION;
 import static javax.ws.rs.core.Response.Status.FORBIDDEN;
 import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 
 import java.time.Duration;
+import java.util.Optional;
 
-import javax.annotation.Priority;
-import javax.enterprise.context.ApplicationScoped;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerRequestFilter;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.ext.Provider;
 
 import org.jboss.logging.Logger;
 
 import io.quarkiverse.zanzibar.Relationship;
+import io.quarkiverse.zanzibar.RelationshipManager;
 
-@ApplicationScoped
-@Provider
-@Priority(AUTHORIZATION)
 public class ZanzibarSynchronousAuthorizationFilter extends ZanzibarAuthorizationFilter implements ContainerRequestFilter {
 
     private static final Logger log = Logger.getLogger(ZanzibarSynchronousAuthorizationFilter.class);
 
+    public ZanzibarSynchronousAuthorizationFilter(Action action,
+            RelationshipManager relationshipManager, Optional<String> unauthenticatedUser, Duration timeout) {
+        super(action, relationshipManager, unauthenticatedUser, timeout);
+    }
+
     @Override
     public void filter(ContainerRequestContext context) {
 
-        var checkResult = prepare(context);
+        var checkOpt = prepare(context);
 
-        if (checkResult instanceof Result.NoCheck) {
-
-            // No check needed
-
-        } else if (checkResult instanceof Result.Forbidden) {
-
+        if (checkOpt.isEmpty()) {
             context.abortWith(Response.status(FORBIDDEN).build());
+            return;
+        }
+        var check = checkOpt.get();
 
-        } else if (checkResult instanceof Result.Check) {
+        try {
 
-            var check = (Result.Check) checkResult;
+            var relationship = Relationship.of(check.objectType, check.objectId, check.relation, check.user);
 
-            try {
+            var allowed = relationshipManager.check(relationship)
+                    .await().atMost(Duration.ofSeconds(10));
 
-                var allowed = relationshipManager.check(Relationship.of(check.type, check.object, check.relation, check.user))
-                        .await().atMost(Duration.ofSeconds(10));
+            log.debugf("Authorization %s", allowed ? "allowed" : "disallowed");
 
-                if (!allowed) {
-                    context.abortWith(Response.status(FORBIDDEN).build());
-                }
-
-            } catch (Throwable t) {
-
-                log.error("Authorization check failed", t);
-
-                context.abortWith(Response.status(INTERNAL_SERVER_ERROR).build());
-
+            if (!allowed) {
+                context.abortWith(Response.status(FORBIDDEN).build());
             }
 
-        } else {
+        } catch (Throwable x) {
 
-            throw new IllegalStateException("Unsupported authorization result");
+            log.error("Authorization check failed", x);
+
+            context.abortWith(Response.status(INTERNAL_SERVER_ERROR).build());
 
         }
     }
