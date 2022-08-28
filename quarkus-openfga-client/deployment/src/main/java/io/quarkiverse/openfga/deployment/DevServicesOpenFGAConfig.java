@@ -73,4 +73,13 @@ public class DevServicesOpenFGAConfig {
      */
     @ConfigItem
     public Optional<String> authorizationModel;
+
+    /**
+     * Location of JSON formatted authorization model file to upload during devservices initialization.
+     * <p>
+     * The location can be prefixed with {@code classpath:} or {@code filesystem:} to specify where the file
+     * will be read from; if not prefixed, it will be read from the classpath.
+     */
+    @ConfigItem
+    public Optional<String> authorizationModelLocation;
 }

@@ -1,11 +1,14 @@
 package io.quarkiverse.openfga.deployment;
 
 import static java.lang.String.format;
+import static java.nio.charset.StandardCharsets.UTF_8;
 
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.nio.file.Path;
 import java.time.Duration;
-import java.util.HashMap;
-import java.util.Optional;
-import java.util.OptionalInt;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
 
 import org.jboss.logging.Logger;
@@ -17,17 +20,15 @@ import org.testcontainers.utility.DockerImageName;
 import io.quarkus.deployment.IsNormal;
 import io.quarkus.deployment.annotations.BuildProducer;
 import io.quarkus.deployment.annotations.BuildStep;
-import io.quarkus.deployment.builditem.CuratedApplicationShutdownBuildItem;
-import io.quarkus.deployment.builditem.DevServicesResultBuildItem;
+import io.quarkus.deployment.builditem.*;
 import io.quarkus.deployment.builditem.DevServicesResultBuildItem.RunningDevService;
-import io.quarkus.deployment.builditem.DockerStatusBuildItem;
-import io.quarkus.deployment.builditem.LaunchModeBuildItem;
 import io.quarkus.deployment.console.ConsoleInstalledBuildItem;
 import io.quarkus.deployment.console.StartupLogCompressor;
 import io.quarkus.deployment.dev.devservices.GlobalDevServicesConfig;
 import io.quarkus.deployment.logging.LoggingSetupBuildItem;
 import io.quarkus.devservices.common.ContainerLocator;
 import io.quarkus.runtime.configuration.ConfigUtils;
+import io.quarkus.runtime.util.ClassPathUtils;
 
 public class DevServicesOpenFGAProcessor {
 
@@ -189,7 +190,29 @@ public class DevServicesOpenFGAProcessor {
                         } catch (Exception e) {
                             throw new RuntimeException("Model initialization failed", e);
                         }
-                    }, () -> log.info("No authentication model provided, skipping authorization store & model initialization"));
+                    }, () -> devServicesConfig.authorizationModelLocation
+                            .ifPresentOrElse(location -> {
+                                try {
+                                    log.infof("Initializing authorization model from %s...", location);
+
+                                    var modelPath = resolveModelPath(location);
+
+                                    try (var modelStream = new FileInputStream(modelPath.toFile())) {
+
+                                        var authModel = new String(modelStream.readAllBytes(), UTF_8);
+
+                                        var authorizationModelId = storeInitializer.createAuthorizationModel(storeId,
+                                                authModel);
+
+                                        devServicesConfigProperties.put(AUTHORIZATION_MODEL_ID_CONFIG_KEY,
+                                                authorizationModelId);
+                                    }
+
+                                } catch (Exception e) {
+                                    throw new RuntimeException("Model initialization failed", e);
+                                }
+                            }, () -> log.info(
+                                    "No authentication model provided, skipping authorization store & model initialization")));
 
             return new RunningDevService(OpenFGAProcessor.FEATURE, container.getContainerId(), container::close,
                     devServicesConfigProperties);
@@ -199,8 +222,8 @@ public class DevServicesOpenFGAProcessor {
                 .locateContainer(devServicesConfig.serviceName, devServicesConfig.shared, launchMode.getLaunchMode())
                 .map(containerAddress -> {
                     var instanceURL = format("http://%s:%d", containerAddress.getHost(), containerAddress.getPort());
-                    return new RunningDevService(OpenFGAProcessor.FEATURE, containerAddress.getId(), null, URL_CONFIG_KEY,
-                            instanceURL);
+                    return new RunningDevService(OpenFGAProcessor.FEATURE, containerAddress.getId(),
+                            null, URL_CONFIG_KEY, instanceURL);
                 })
                 .orElseGet(defaultOpenFGAInstanceSupplier);
     }
@@ -236,4 +259,30 @@ public class DevServicesOpenFGAProcessor {
         }
     }
 
+    private Path resolveModelPath(String location) throws IOException {
+        location = normalizeLocation(location);
+        if (location.startsWith("filesystem:")) {
+            return Path.of(location.substring("filesystem:".length()));
+        }
+
+        var classpathPath = new AtomicReference<Path>();
+        ClassPathUtils.consumeAsPaths(Thread.currentThread().getContextClassLoader(), location, classpathPath::set);
+
+        return classpathPath.get();
+    }
+
+    private String normalizeLocation(String location) {
+        // Strip any 'classpath:' protocol prefixes because they are assumed
+        // but not recognized by ClassLoader.getResources()
+        if (location.startsWith("classpath:")) {
+            location = location.substring("classpath:".length());
+            if (location.startsWith("/")) {
+                location = location.substring(1);
+            }
+        }
+        if (!location.endsWith("/")) {
+            location += "/";
+        }
+        return location;
+    }
 }
